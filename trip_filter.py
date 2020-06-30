@@ -4,14 +4,16 @@ filter out the trips starts/ends within Manhattan area
 
 import time
 import pickle
+import os
 import pandas as pd
 import numpy as np
-from dateutil.parser import parse
 import datetime
+from dateutil.parser import parse
+from tqdm import tqdm
 
-with open('NYC_NOD_LOC.pickle', 'rb') as f:
+with open('./pickle-files-gitignore/NYC_NOD_LOC.pickle', 'rb') as f:
     NOD_LOC = pickle.load(f)
-with open('NYC_TTT_WEEK.pickle', 'rb') as f:
+with open('./pickle-files-gitignore/NYC_TTT_WEEK.pickle', 'rb') as f:
     NOD_TTT = pickle.load(f)
 
 
@@ -45,9 +47,7 @@ def is_point_in_poly(lng, lat):
         return False
 
 
-def longer_than_3_min(olng, olat, dlng, dlat):
-    onid = map_nearest_node(olng, olat)
-    dnid = map_nearest_node(dlng, dlat)
+def longer_than_3_min(onid, dnid):
     if NOD_TTT[onid - 1, dnid - 1] > 180:
         return True
     else:
@@ -66,15 +66,12 @@ def map_nearest_node(lng, lat):
     return int(nearest_node_id)
 
 
-def filter_out_needed_trips(csv_file_path):
+def filter_out_needed_trips(csv_file_path, year='2016', month='05', day='01'):
     # the selected day
-    year = '2013'
-    month = '05'
-    day = '05'
     date = year + '-' + month + '-' + day
     # proposed saving file name
-    nyc_taxi_file_on_selected_day = 'nyc-taxi-' + year + month + day + '.csv'
-    manhattan_taxi_file_on_selected_day = 'manhattan-taxi-' + year + month + day + '.csv'
+    nyc_taxi_file_on_selected_day = './taxi-trips/nyc-taxi-' + year + month + day + '.csv'
+    manhattan_taxi_file_on_selected_day = './taxi-trips/manhattan-taxi-' + year + month + day + '.csv'
 
     # labels' names
     # # for green taxi
@@ -149,12 +146,6 @@ def filter_out_needed_trips(csv_file_path):
     print('  number of trips in Manhattan:', df5.shape[0])
     df5.to_csv(manhattan_taxi_file_on_selected_day, index=False)
 
-    # filter out the trips longer than 3 min
-    print('filtering out the trips longer than 3 min...')
-    df6 = df5[df5.apply(lambda x: longer_than_3_min(x['olng'], x['olat'], x['dlng'], x['dlat']), axis=1)]
-    print('  number of trips longer than 3 min :', df6.shape[0])
-    df6.to_csv(manhattan_taxi_file_on_selected_day, index=False)
-
 
 # add the nearest node id to the origin and destination locations
 def map_geo_to_node_id(csv_file_path):
@@ -163,8 +154,24 @@ def map_geo_to_node_id(csv_file_path):
     col_name = df.columns.tolist()
     col_name.insert(col_name.index('olng'), 'onid')
     col_name.insert(col_name.index('dlng'), 'dnid')
-    df.reindex(columns=col_name)
-    df.to_csv('test.csv', index=False)
+    df = df.reindex(columns=col_name)
+    onid_idx = col_name.index('onid')
+    dnid_idx = col_name.index('dnid')
+    for req_idx in tqdm(range(df.shape[0]), desc='path-table row'):
+        olng = df.iloc[req_idx]['olng']
+        olat = df.iloc[req_idx]['olat']
+        dlng = df.iloc[req_idx]['dlng']
+        dlat = df.iloc[req_idx]['dlat']
+        df.iloc[req_idx, onid_idx] = map_nearest_node(olng, olat)
+        df.iloc[req_idx, dnid_idx] = map_nearest_node(dlng, dlat)
+    df[['onid']] = df[['onid']].astype(int)
+    df[['dnid']] = df[['dnid']].astype(int)
+
+    # filter out the trips longer than 3 min
+    print('filtering out the trips longer than 3 min...')
+    df1 = df[df.apply(lambda x: longer_than_3_min(x['onid'], x['dnid']), axis=1)]
+    print('  number of trips longer than 3 min :', df1.shape[0])
+    df1.to_csv(csv_file_path, index=False)
 
 
 # merge some fraction of trips on day 1 to day 2
@@ -181,35 +188,45 @@ def merge_two_days_trips(csv_file_path1, csv_file_path2, day_difference, fractio
     df13 = pd.concat(merged_trips, ignore_index=True)
     df13.sort_values('ptime', inplace=True)
     print('number of all taxi trips:', df13.shape[0])
-    df13.to_csv('manhattan-taxi-20130507.csv', index=False)
+    df13.to_csv('manhattan-taxi-merged.csv', index=False)
 
 
-def merge_green_taxi_and_yellow_taxi_together():
-    df8 = pd.read_csv('manhattan-green-taxi-20150502.csv')
+def merge_green_taxi_and_yellow_taxi_together(year='2016', month='05', day='01'):
+    df8 = pd.read_csv('manhattan-green-taxi-' + year + month + day + '.csv')
     df8['taxi'] = 'green'
     print('number of green taxi trips:', df8.shape[0])
-    df9 = pd.read_csv('manhattan-yellow-taxi-20150502.csv')
+    df9 = pd.read_csv('manhattan-yellow-taxi-' + year + month + day + '.csv')
     df9['taxi'] = 'yellow'
     print('number of yellow taxi trips:', df9.shape[0])
     frames = [df8, df9]
     df10 = pd.concat(frames, ignore_index=True)
     df10.sort_values('ptime', inplace=True)
     print('number of all taxi trips:', df10.shape[0])
-    df10.to_csv('Manhattan-taxi-20150502.csv', index=False)
+    df10.to_csv('manhattan-taxi-' + year + month + day + '.csv', index=False)
 
 
 if __name__ == '__main__':
     stime = time.time()
 
-    # read all trips
-    csv_file_path = './taxi-trips/manhattan-taxi-20160501.csv'
+    # select the taxi trips on the day needed
+    csv_file_path0 = ''
+    year = '2015'
+    month = '05'
+    day = '02'
+    filter_out_needed_trips(csv_file_path0, year, month, day)
 
+    # add node id information to the trip data
+    csv_file_path = './taxi-trips/manhattan-taxi-' + year + month + day + '.csv'
     map_geo_to_node_id(csv_file_path)
 
-
-
-
-
+    # store taxi trips as pickle file
+    print('store taxi trips to pickle file')
+    path = './pickle-files-gitignore/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+    REQ_DATA = pd.read_csv(csv_file_path)
+    with open(path + 'NYC_REQ_DATA_' + year + month + day + '.pickle', 'wb') as f:
+        pickle.dump(REQ_DATA, f)
 
     runtime = time.time() - stime
     print('...running time : %.05f seconds' % runtime)
