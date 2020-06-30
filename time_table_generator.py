@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 
 NYC_NOD = pd.read_csv('./map-data/nodes.csv')
-with open('NYC_NET_WEEK.pickle', 'rb') as f:
+with open('./pickle-files-gitignore/NYC_NET_WEEK.pickle', 'rb') as f:
     NYC_NET = pickle.load(f)
 
 
@@ -61,14 +61,14 @@ def compute_tables(graph=NYC_NET, nodes=NYC_NOD, label=''):
             except nx.NetworkXNoPath:
                 print('no path between', o, d)
 
-    path = './precomputed-tables/'
+    path = './precomputed-tables-gitignore/'
     if not os.path.exists(path):
         os.mkdir(path)
     if label != '':
         label = '_' + label
-    path_table.to_csv('./precomputed-tables/path-table' + label + '.csv')
-    mean_table.to_csv('./precomputed-tables/mean_table' + label + '.csv')
-    var_table.to_csv('./precomputed-tables/var_table' + label + '.csv')
+    path_table.to_csv(path + 'path-table' + label + '.csv')
+    mean_table.to_csv(path + 'mean_table' + label + '.csv')
+    var_table.to_csv(path + 'var_table' + label + '.csv')
 
 
 # quickly load the path from origin to destination from the precomputed path table
