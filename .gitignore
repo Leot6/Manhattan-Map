@@ -34,3 +34,5 @@
 __pycache__/
 .idea/
 .DS_Store
+precomputed-tables/
+pickle-files/

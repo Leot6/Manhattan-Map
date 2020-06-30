@@ -1,18 +1,22 @@
 """
-generate the graph of Manhattan using networkx
+generate the graph of Manhattan using networkx.
+    input:  edges.csv
+            nodes.csv
+            time-on-week.csv
+    output: ./pickle-files/NYC_NET.pickle
 """
 
 import time
 import pickle
 import math
-import random
+import os
 import numpy as np
 import pandas as pd
 import networkx as nx
 from tqdm import tqdm
 
 
-# get the duration based on haversine formula
+# get the distance based on haversine formula
 def get_haversine_distance(olng, olat, dlng, dlat):
     dist = (6371000 * 2 * math.pi / 360 * np.sqrt((math.cos((olat + dlat) * math.pi / 360)
                                                    * (olng - dlng)) ** 2 + (olat - dlat) ** 2))
@@ -22,15 +26,15 @@ def get_haversine_distance(olng, olat, dlng, dlat):
 def load_Manhattan_graph():
     aa = time.time()
     print('Loading edges and nodes data...')
-    edges = pd.read_csv('edges.csv')
-    nodes = pd.read_csv('nodes.csv')
+    edges = pd.read_csv('./map-data/edges.csv')
+    nodes = pd.read_csv('./map-data/nodes.csv')
     travel_time_edges = pd.read_csv('./map-data/time-on-week.csv', index_col=0)
     # consider the travels times on different hours as samples, and compute the sample mean and standard deviation
     mean_travel_times = travel_time_edges.mean(1)
     std_travel_times = travel_time_edges.std(1)
     G = nx.DiGraph()
     num_edges = edges.shape[0]
-    rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan Graph...')
+    rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan graph...')
     for i, edge in rng:
         u = edge['source']
         v = edge['sink']
@@ -47,7 +51,7 @@ def load_Manhattan_graph():
         # artificial variance
         variance1 = round(std * 2 * unit_travel_time, 2)
         variance = round(100 * unit_travel_time ** 2, 2)
-        print(u, v, 'mean_travel_time', mean_travel_time, 'std', std, 'travel_dist', travel_dist, 'var', variance, variance1)
+        # print(u, v, 'mean_travel_time', mean_travel_time, 'std', std, 'travel_dist', travel_dist, 'var', variance, variance1)
 
         if mean_travel_time < 5:
             mean_travel_time += 5
@@ -58,7 +62,10 @@ def load_Manhattan_graph():
         G.add_node(v, pos=v_pos)
 
     # store_map_as_pickle_file
-    with open('NYC_NET.pickle', 'wb') as f:
+    path = './pickle-files/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+    with open('./pickle-files/NYC_NET_WEEK.pickle', 'wb') as f:
         pickle.dump(G, f)
     print('Saving the graph as a pickle file...')
 
