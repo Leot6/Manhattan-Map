@@ -12,8 +12,7 @@ from tqdm import tqdm
 from config import *
 
 # the locations of nodes
-with open(f'{PICKLE_PATH}NYC_NOD_LOC.pickle', 'rb') as f:
-    NOD_LOC = pickle.load(f)
+NOD_LOC = pd.read_csv('./map-data/nodes.csv').values.tolist()
 # the travel time table, storing ETA among all node pairs
 with open(f'{PICKLE_PATH}NYC_TTT_WEEK.pickle', 'rb') as f:
     NOD_TTT = pickle.load(f)
@@ -75,7 +74,7 @@ def longer_than_3_min(onid, dnid):
 
 
 def map_nearest_node(lng, lat):
-    """Find the nearest node in the graph for a geo point.
+    """Find the nearest node in the network for a geo point.
 
         Args:
             lng: longitude of the point.
