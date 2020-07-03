@@ -102,16 +102,16 @@ def compute_tables(network=NYC_NET, label=''):
     var_table.to_csv(f'{TABLE_PATH}var-table{label}.csv')
 
 
-def compute_a_set_of_lemada_tables(lemada_set):
+def compute_a_set_of_lambda_path_tables(lambda_set):
     """Compute a set of parametric shortest paths (m+λ*v) table.
         Args:
-            lemada_set: the value set of different lambda parameters.
+            lambda_set: the value set of different lambda parameters.
 
         Returns:
-            saving the tables as csv files, named 'path-table-λ.csv', 'mean-table-λ.csv' and 'var-table-λ.csv'
+            saving the tables as csv files, named 'path-table-0.csv', 'mean-table-0.csv' and 'var-table-0.csv'
     """
-    for i in tqdm(range(0, len(K)), desc='computing a set of lemada tables:'):
-        lemada = lemada_set[i]
+    for i in tqdm(range(0, len(lambda_set)), desc='computing a set of lambda path tables:'):
+        lam = lambda_set[i]
         print(' updating lemada network')
         for u, v in G.edges():
             dur = NYC_NET.get_edge_data(u, v, default={'dur': None})['dur']
@@ -119,10 +119,10 @@ def compute_a_set_of_lemada_tables(lemada_set):
             if dur is np.inf:
                 print('error: dur is np.inf !!!')
                 quit()
-            if lemada == np.inf:
+            if lam == np.inf:
                 weight = var
             else:
-                weight = dur + lemada * var
+                weight = dur + lam * var
             G.edges[u, v]['dur'] = weight
         compute_tables(G, str(i))
 
@@ -132,5 +132,5 @@ if __name__ == '__main__':
 
     # K = [0, 0.2, 0.3155, 0.4976, 0.7849, 1.2381, 1.9529, 3.0803, 4.8588, 7.664, 12.0888, 19.0683, 30.0774, 47.4425,
     #      74.8335, 118.0386, 186.1882, 293.684, 463.2426, 705, np.inf]
-    # compute_a_set_of_lemada_tables(K)
+    # compute_a_set_of_lambda_path_tables(K)
 
