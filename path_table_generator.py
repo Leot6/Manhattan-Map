@@ -59,11 +59,11 @@ def get_path_mean_and_var(path):
     return round(mean, 2), round(var, 2)
 
 
-def compute_tables(graph=NYC_NET, label=''):
+def compute_tables(network=NYC_NET, label=''):
     """Compute the shortest paths among all nodes pairs and store the paths, along with means and variances, in tables.
 
         Args:
-            graph: the map.
+            network: the map.
             label: marking different tables when computing a set of parametric shortest paths
 
         Returns:
@@ -71,10 +71,10 @@ def compute_tables(graph=NYC_NET, label=''):
     """
     stime = time.time()
     print(' computing all_pairs_dijkstra...')
-    len_paths = dict(nx.all_pairs_dijkstra(graph, cutoff=None, weight='dur'))
+    len_paths = dict(nx.all_pairs_dijkstra(network, cutoff=None, weight='dur'))
     print(f'all_pairs_dijkstra running time: {time.time() - stime:.5f} sec')
     print(' writing table value...')
-    nodes_id = list(range(1, graph.number_of_nodes() + 1))
+    nodes_id = list(range(1, network.number_of_nodes() + 1))
     num_nodes = len(nodes_id)
     path_table = pd.DataFrame(-np.ones((num_nodes, num_nodes), dtype=int), index=nodes_id, columns=nodes_id)
     mean_table = pd.DataFrame(-np.ones((num_nodes, num_nodes)), index=nodes_id, columns=nodes_id)
@@ -82,18 +82,17 @@ def compute_tables(graph=NYC_NET, label=''):
     for o in tqdm(nodes_id, desc='path-table row'):
         for d in tqdm(nodes_id, desc='path-table column'):
             try:
-                # the shortest path table
                 path = len_paths[o][1][d]
-                if len(path) == 1:
-                    continue
-                else:
-                    pre_node = path[-2]
-                    path_table.iloc[o - 1, d - 1] = pre_node
                 # if var table is not needed, using the following line to get mean is faster
                 # mean = round(len_paths[o][0][d], 2)
                 mean, var = get_path_mean_and_var(path)
                 mean_table.iloc[o - 1, d - 1] = mean
                 var_table.iloc[o - 1, d - 1] = var
+                if len(path) == 1:
+                    continue
+                else:
+                    pre_node = path[-2]
+                    path_table.iloc[o - 1, d - 1] = pre_node
             except nx.NetworkXNoPath:
                 print('no path between', o, d)
     if label:
@@ -106,14 +105,14 @@ def compute_tables(graph=NYC_NET, label=''):
 def compute_a_set_of_lemada_tables(lemada_set):
     """Compute a set of parametric shortest paths (m+λ*v) table.
         Args:
-            lemada_set: the value set of different parameters.
+            lemada_set: the value set of different lambda parameters.
 
         Returns:
             saving the tables as csv files, named 'path-table-λ.csv', 'mean-table-λ.csv' and 'var-table-λ.csv'
     """
-    for i in tqdm(range(14, 21), desc='computing a set of lemada tables:'):
+    for i in tqdm(range(0, len(K)), desc='computing a set of lemada tables:'):
         lemada = lemada_set[i]
-        print(' updating lemada graph')
+        print(' updating lemada network')
         for u, v in G.edges():
             dur = NYC_NET.get_edge_data(u, v, default={'dur': None})['dur']
             var = NYC_NET.get_edge_data(u, v, default={'var': None})['var']
@@ -134,3 +133,4 @@ if __name__ == '__main__':
     # K = [0, 0.2, 0.3155, 0.4976, 0.7849, 1.2381, 1.9529, 3.0803, 4.8588, 7.664, 12.0888, 19.0683, 30.0774, 47.4425,
     #      74.8335, 118.0386, 186.1882, 293.684, 463.2426, 705, np.inf]
     # compute_a_set_of_lemada_tables(K)
+

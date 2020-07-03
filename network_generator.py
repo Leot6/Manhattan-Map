@@ -1,5 +1,5 @@
 """
-generate the graph of Manhattan using networkx.
+generate the network of Manhattan using networkx.
     input:  edges.csv
             nodes.csv
             time-on-week.csv
@@ -33,8 +33,8 @@ def get_haversine_dist(olng, olat, dlng, dlat):
     return dist
 
 
-def load_Manhattan_graph():
-    """Build the Manhattan graph using networkx
+def load_Manhattan_network():
+    """Build the Manhattan network using networkx
 
         Args:
             nodes.csv, each row: (node_id, lng, lat).
@@ -42,7 +42,7 @@ def load_Manhattan_graph():
             time-on-week.csv, the travel times on edges, each row: (edge_id, travel_time).
 
         Returns:
-            saving the graph as a pickle file, named 'NYC_NET_WEEK.pickle'.
+            saving the network as a pickle file, named 'NYC_NET_WEEK.pickle'.
     """
     stime = time.time()
     print('Loading edges and nodes data...')
@@ -54,7 +54,7 @@ def load_Manhattan_graph():
     std_travel_times = travel_time_edges.std(1)
     G = nx.DiGraph()
     num_edges = edges.shape[0]
-    rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan graph...')
+    rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan network...')
     for i, edge in rng:
         u = edge['source']
         v = edge['sink']
@@ -82,9 +82,9 @@ def load_Manhattan_graph():
     # store_map_as_pickle_file
     with open(f'{PICKLE_PATH}NYC_NET_WEEK.pickle', 'wb') as f:
         pickle.dump(G, f)
-    print('Saving the graph as a pickle file...')
+    print('Saving the network as a pickle file...')
     print(f'...running time: {time.time() - stime:.5f} sec')
 
 
 if __name__ == '__main__':
-    load_Manhattan_graph()
+    load_Manhattan_network()
