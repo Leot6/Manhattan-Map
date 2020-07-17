@@ -123,8 +123,8 @@ def print_num_of_trips_on_each_day(csv_file_path, year='2016', month='05'):
         print('number of trips on selected day (%s): %d' % (date, df1.shape[0]))
 
 
-def select_trips_on_one_day(csv_file_path, year='2015', month='05', day='05'):
-    """Filter out the trips in Manhattan on selected day
+def select_trips_on_a_day(csv_file_path, year='2015', month='05', day='05'):
+    """Filter out the trips in Manhattan on the selected day
 
         Args:
             csv_file_path: the path of the taxi trip file of the whole month
@@ -229,15 +229,19 @@ def map_geo_to_node_id(csv_file_path):
     col_name.insert(col_name.index('olng'), 'onid')
     col_name.insert(col_name.index('dlng'), 'dnid')
     df = df.reindex(columns=col_name)
-    onid_idx = col_name.index('onid')
-    dnid_idx = col_name.index('dnid')
+    col_onid_idx = col_name.index('onid')
+    col_dnid_idx = col_name.index('dnid')
+    col_olng_idx = col_name.index('olng')
+    col_olat_idx = col_name.index('olat')
+    col_dlng_idx = col_name.index('dlng')
+    col_dlat_idx = col_name.index('dlat')
     for req_idx in tqdm(range(df.shape[0]), desc='path-table row'):
-        olng = df.iloc[req_idx]['olng']
-        olat = df.iloc[req_idx]['olat']
-        dlng = df.iloc[req_idx]['dlng']
-        dlat = df.iloc[req_idx]['dlat']
-        df.iloc[req_idx, onid_idx] = map_nearest_node(olng, olat)
-        df.iloc[req_idx, dnid_idx] = map_nearest_node(dlng, dlat)
+        olng = df.iloc[req_idx, col_olng_idx]
+        olat = df.iloc[req_idx, col_olat_idx]
+        dlng = df.iloc[req_idx, col_dlng_idx]
+        dlat = df.iloc[req_idx, col_dlat_idx]
+        df.iloc[req_idx, col_onid_idx] = map_nearest_node(olng, olat)
+        df.iloc[req_idx, col_dnid_idx] = map_nearest_node(dlng, dlat)
     df[['onid']] = df[['onid']].astype(int)
     df[['dnid']] = df[['dnid']].astype(int)
 
@@ -305,7 +309,7 @@ def filter_out_needed_trips(unprocessed_trip_file, year='2015', month='05', day=
     stime = time.time()
 
     # select the taxi trips on the day needed
-    select_trips_on_one_day(unprocessed_trip_file, year, month, day)
+    select_trips_on_a_day(unprocessed_trip_file, year, month, day)
 
     # add node id information to the trip data
     csv_file_path = f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv'

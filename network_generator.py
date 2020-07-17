@@ -55,14 +55,14 @@ def load_Manhattan_network():
     G = nx.DiGraph()
     num_edges = edges.shape[0]
     rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan network...')
-    for i, edge in rng:
+    for idx, edge in rng:
         u = edge['source']
         v = edge['sink']
         u_pos = np.array([nodes.iloc[u - 1]['lng'], nodes.iloc[u - 1]['lat']])
         v_pos = np.array([nodes.iloc[v - 1]['lng'], nodes.iloc[v - 1]['lat']])
 
-        mean_travel_time = round(mean_travel_times.iloc[i], 2)
-        std = round(std_travel_times.iloc[i], 2)
+        mean_travel_time = round(mean_travel_times.iloc[idx], 2)
+        std = round(std_travel_times.iloc[idx], 2)
         travel_dist = round(get_haversine_dist(u_pos[0], u_pos[1], v_pos[0], v_pos[1]), 2)
         unit_travel_time = round(mean_travel_time / travel_dist, 4)
 
