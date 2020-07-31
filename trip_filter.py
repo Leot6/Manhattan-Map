@@ -279,7 +279,7 @@ def merge_two_days_trips(csv_file_path1, csv_file_path2, day_difference, fractio
     df13.to_csv('manhattan-taxi-merged.csv', index=False)
 
 
-def merge_green_taxi_and_yellow_taxi_together(year='2016', month='05', day='01'):
+def merge_green_taxi_and_yellow_taxi_together(year='2015', month='05', day='05'):
     df8 = pd.read_csv(f'manhattan-green-taxi-{year}{month}{day}.csv')
     df8['taxi'] = 'green'
     print('number of green taxi trips:', df8.shape[0])
