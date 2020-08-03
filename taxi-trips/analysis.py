@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import json
 from geojson import Feature, FeatureCollection
-from folium import Map, GeoJson
+from folium import Map, GeoJson, map
 import branca.colormap as cm
 
 
@@ -30,7 +30,7 @@ def plot_trip_pick_up_distribution(pickup_samples):
     plt.show()
 
 
-def count_by_hexagon(df, resolution):
+def counts_by_hexagon(df, resolution):
     """
     Use h3.geo_to_h3 to index each data point into the spatial index of the specified resolution.
     Use h3.h3_to_geo_boundary to obtain the geometries of these hexagons
@@ -140,13 +140,27 @@ def run():
     # plot_trip_pick_up_distribution(trip_samples)
 
     # Counts how many points are within the hex
-    df_aggreg = count_by_hexagon(trip_samples, 9)
+    df_aggreg = counts_by_hexagon(trip_samples, 9)
     df_aggreg.sort_values(by='value', ascending=True, inplace=True)
     print('count_by_hex')
     print(df_aggreg.head(2))
     # Creates a map using Folium
     hexmap = choropleth_map(df_aggreg=df_aggreg, with_legend=True)
-    hexmap.save('choropleth map.html')
+    hexmap.save('choropleth_map.html')
+
+    #  plot multiple aperture sizes with legend allowing to toggle them on/off
+    df_aggreg_10 = counts_by_hexagon(df=trip_samples, resolution=10)
+    df_aggreg_9 = counts_by_hexagon(df=trip_samples, resolution=9)
+    df_aggreg_8 = counts_by_hexagon(df=trip_samples, resolution=8)
+    df_aggreg_7 = counts_by_hexagon(df=trip_samples, resolution=7)
+    df_aggreg_6 = counts_by_hexagon(df=trip_samples, resolution=6)
+    hexmap10 = choropleth_map(df_aggreg=df_aggreg_10, with_legend=False)
+    hexmap9 = choropleth_map(df_aggreg=df_aggreg_9, initial_map=hexmap10, with_legend=False)
+    hexmap8 = choropleth_map(df_aggreg=df_aggreg_8, initial_map=hexmap9, with_legend=False)
+    hexmap7 = choropleth_map(df_aggreg=df_aggreg_7, initial_map=hexmap8, with_legend=False)
+    hexmap6 = choropleth_map(df_aggreg=df_aggreg_6, initial_map=hexmap7, with_legend=False)
+    map.LayerControl('bottomright', collapsed=False).add_to(hexmap6)
+    hexmap6.save('choropleth_multiple_res.html')
 
 
 if __name__ == '__main__':
