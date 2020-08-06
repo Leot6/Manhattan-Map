@@ -120,10 +120,7 @@ def plot_scatter(df, metric_col, x='lng', y='lat', marker='.', alpha=1, figsize=
     """
     Scatter plot function for h3 indexed objects
     """
-    df.plot.scatter(x=x, y=y, c=metric_col, title=metric_col
-                    , edgecolors='none', colormap=colormap, marker=marker, alpha=alpha, figsize=figsize);
-    plt.xticks([], []);
-    plt.yticks([], [])
+    df.plot.scatter(x=x, y=y, c=metric_col, title=metric_col, edgecolors='none', colormap=colormap, marker=marker, alpha=alpha, figsize=figsize)
 
 
 def run():
@@ -139,14 +136,14 @@ def run():
     # # plot the pick up and drop off location distributions
     # plot_trip_pick_up_distribution(trip_samples)
 
-    # Counts how many points are within the hex
-    df_aggreg = counts_by_hexagon(trip_samples, 9)
-    df_aggreg.sort_values(by='value', ascending=True, inplace=True)
-    print('count_by_hex')
-    print(df_aggreg.head(2))
-    # Creates a map using Folium
-    hexmap = choropleth_map(df_aggreg=df_aggreg, with_legend=True)
-    hexmap.save('choropleth_map.html')
+    # # Counts how many points are within the hex
+    # df_aggreg = counts_by_hexagon(trip_samples, 9)
+    # df_aggreg.sort_values(by='value', ascending=True, inplace=True)
+    # print('count_by_hex')
+    # print(df_aggreg.head(2))
+    # # Creates a map using Folium
+    # hexmap = choropleth_map(df_aggreg=df_aggreg, with_legend=True)
+    # hexmap.save('choropleth_map.html')
 
     #  plot multiple aperture sizes with legend allowing to toggle them on/off
     df_aggreg_10 = counts_by_hexagon(df=trip_samples, resolution=10)
