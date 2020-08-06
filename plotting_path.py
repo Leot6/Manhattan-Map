@@ -64,7 +64,7 @@ def plot_path(onid, dnid, paths):
 
 
 def plot_node(nodes):
-    """Plot paths on the Manhattan map and save the fig to a file.
+    """Plot nodes on the Manhattan map and save the fig to a file.
 
         Args:
             nodes: a list of (lng, lat)
@@ -82,6 +82,22 @@ def plot_node(nodes):
         plt.scatter(lng, lat, s=35, color='0.5')
 
     # plt.savefig('plotted_graph.jpg', dpi=300)
+    plt.show()
+
+
+def plot_node_without_background(nodes):
+    """Plot nodes distribution and save the fig to a file.
+
+        Args:
+            nodes: pandas dataframe, col_name has ['lng', 'lat']
+        Returns:
+            show the plotted fig and save it to 'plotted_node_distribution.jpg'.
+    """
+    num_of_nodes = nodes.shape[0]
+    title = f'Node Distribution - {num_of_nodes}'
+    nodes.plot(x='lng', y='lat', style='.', markersize=1, alpha=1, legend=False, title=title, figsize=(12, 6))
+    plt.tight_layout()
+    plt.savefig('plotted_node_distribution.jpg', dpi=500)
     plt.show()
 
 
@@ -118,3 +134,5 @@ if __name__ == "__main__":
     # print(list(osm_manhattan_node_dict.items())[:5])
     # osm_manhattan_node_ = sorted(osm_manhattan_node_dict.items(), key=lambda x: (x[1][0], x[1][1]))
     # print(osm_manhattan_node_[100:110])
+
+    # plot_node_without_background(df1)
