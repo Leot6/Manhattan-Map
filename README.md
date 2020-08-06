@@ -1,5 +1,5 @@
 # `Manhattan Map`
-<img src="https://github.com/Leot6/Manhattan-Map/blob/master/map-data/nodes.png" width="300">
+<img src="https://github.com/Leot6/Manhattan-Map/blob/master/map-data/node_distribution.jpg" width="1000">
 
 Built on [this repository](https://github.com/wallarelvo/nyc-taxi-analysis). This network of Manhattan consists of 4,091 nodes and 9,452 edges. The travel times on each edge (road segment) during each hour of the day are provided. Taxi trip data on several days is also provided. 
 
