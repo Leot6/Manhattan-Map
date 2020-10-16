@@ -235,7 +235,7 @@ def map_geo_to_node_id(csv_file_path):
     col_olat_idx = col_name.index('olat')
     col_dlng_idx = col_name.index('dlng')
     col_dlat_idx = col_name.index('dlat')
-    for req_idx in tqdm(range(df.shape[0]), desc='path-table row'):
+    for req_idx in tqdm(range(df.shape[0]), desc='trips row'):
         olng = df.iloc[req_idx, col_olng_idx]
         olat = df.iloc[req_idx, col_olat_idx]
         dlng = df.iloc[req_idx, col_dlng_idx]
@@ -252,38 +252,38 @@ def map_geo_to_node_id(csv_file_path):
     df1.to_csv(csv_file_path, index=False)
 
 
-def merge_two_days_trips(csv_file_path1, csv_file_path2, day_difference, fraction=1/5):
-    """Merge some trips on day 1 to day 2, and save them to a new csv file
-
-        Args:
-            csv_file_path1: the path of the taxi trip file on day 1
-            csv_file_path1: the path of the taxi trip file on day 2
-            day_difference: day difference between day 1 and day 2, e.g. it is 1 between 5 May and 6 May
-            fraction: the percentage of the trips on day 1 that are about to merged to day 2
-
-        Returns:
-            saving the merged taxi trip data in a csv file, named 'manhattan-taxi-merged.csv'
+def merge_two_days_trips(year, month, day1, day2, expected_num_trip=400000):
+    """Merge some trips on day 2 to day 1, and save them to a new csv file
     """
-    day1 = pd.read_csv(csv_file_path1)
-    print('number of all taxi trips on day 1:', day1.shape[0])
-    day2 = pd.read_csv(csv_file_path2)
-    print('number of all taxi trips on day 2:', day2.shape[0])
-    day1['ptime'] = day1['ptime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
-    day1['dtime'] = day1['dtime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
+    df_day1 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}.csv')
+    print('number of all taxi trips on day 1:', df_day1.shape[0])
+    df_day2 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day2}.csv')
+    print('number of all taxi trips on day 2:', df_day2.shape[0])
+    day_difference = int(day1) - int(day2)
+    df_day2['ptime'] = df_day2['ptime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
+    df_day2['dtime'] = df_day2['dtime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
+
+    fraction = (expected_num_trip - df_day1.shape[0]) / df_day2.shape[0]
     step = int(1/fraction)
-    day1 = day1.iloc[1::step]  # [start：end：step]
-    merged_trips = [day1, day2]
+    df_day2 = df_day2.iloc[1::step]  # [start：end：step]
+
+    # # some time we can not use uniform step to sample the num of trips we need,
+    # # then we could uniformly sample the num of trips droped
+    # step = 3
+    # df_day2 = df_day2.drop(df_day2.index[list(range(0, df_day2.shape[0], step))])  # range(start, step, end]
+
+    merged_trips = [df_day1, df_day2]
     df13 = pd.concat(merged_trips, ignore_index=True)
     df13.sort_values('ptime', inplace=True)
     print('number of all taxi trips:', df13.shape[0])
-    df13.to_csv('manhattan-taxi-merged.csv', index=False)
+    df13.to_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}-{df13.shape[0]}.csv', index=False)
 
 
 def merge_green_taxi_and_yellow_taxi_together(year='2015', month='05', day='05'):
-    df8 = pd.read_csv(f'manhattan-green-taxi-{year}{month}{day}.csv')
+    df8 = pd.read_csv(f'./taxi-trips/manhattan-green-taxi-{year}{month}{day}.csv')
     df8['taxi'] = 'green'
     print('number of green taxi trips:', df8.shape[0])
-    df9 = pd.read_csv(f'manhattan-yellow-taxi-{year}{month}{day}.csv')
+    df9 = pd.read_csv(f'./taxi-trips/manhattan-yellow-taxi-{year}{month}{day}.csv')
     df9['taxi'] = 'yellow'
     print('number of yellow taxi trips:', df9.shape[0])
     frames = [df8, df9]
@@ -324,10 +324,12 @@ def filter_out_needed_trips(unprocessed_trip_file, year='2015', month='05', day=
 
 
 if __name__ == '__main__':
-    year = '2015'
+    year = '2016'
     month = '05'
-    day = '06'
+    day = '25'
     unprocessed_trip_file = f'yellow_tripdata_{year}-{month}.csv'
 
-    print_num_of_trips_on_each_day(unprocessed_trip_file, year, month)
+    # print_num_of_trips_on_each_day(unprocessed_trip_file, year, month)
     # filter_out_needed_trips(unprocessed_trip_file, year, month, day)
+    day2 = '11'
+    merge_two_days_trips(year, month, day, day2, 500000)

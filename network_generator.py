@@ -15,18 +15,13 @@ import networkx as nx
 from tqdm import tqdm
 from config import *
 
-
 def get_haversine_dist(olng, olat, dlng, dlat):
     """Compute the distance between two points.
-
-        Args:
-            olng: longitude of the origin.
-            olat: latitude of the origin.
-            dlng: longitude of the destination.
-            dlat: latitude of the destination.
-
-        Returns:
-            dist: the distance in meter
+    :param olng: longitude of the origin.
+    :param olat: latitude of the origin.
+    :param dlng: longitude of the destination.
+    :param dlat: latitude of the destination.
+    :return: the distance in meter
     """
     dist = (6371000 * 2 * math.pi / 360 * np.sqrt((math.cos((olat + dlat) * math.pi / 360)
                                                    * (olng - dlng)) ** 2 + (olat - dlat) ** 2))
