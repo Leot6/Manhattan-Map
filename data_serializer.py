@@ -57,5 +57,7 @@ if __name__ == '__main__':
     # store_network_to_pickle()
     # store_path_table_to_pickle()
 
-    for i in range(21):
-        store_path_table_to_pickle(str(i))
+    # for i in range(21):
+    #     store_path_table_to_pickle(str(i))
+
+    store_taxi_trips_to_pickle('20160525-800752')

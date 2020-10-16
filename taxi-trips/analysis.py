@@ -5,16 +5,17 @@
 import time
 import h3
 import pickle
+import json
 import numpy as np
 import scipy.stats as st
 import pandas as pd
+import branca.colormap as cm
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import json
 from geojson import Feature, FeatureCollection
 from folium import Map, GeoJson, map
-import branca.colormap as cm
+from dateutil.parser import parse
 
 
 # find out the distribution of pick up locations of trips
@@ -123,12 +124,12 @@ def plot_scatter(df, metric_col, x='lng', y='lat', marker='.', alpha=1, figsize=
     df.plot.scatter(x=x, y=y, c=metric_col, title=metric_col, edgecolors='none', colormap=colormap, marker=marker, alpha=alpha, figsize=figsize)
 
 
-def run():
+def run_counts_by_hexagon():
     year = '2015'
     month = '05'
     day = '05'
-    # columns = ['ptime', 'npass', 'olng', 'olat', 'dlng', 'dlat', 'dist', 'dtime']
-    taxi_trips = pd.read_csv(f'manhattan-taxi-{year}{month}{day}.csv').loc[:, ['olng', 'olat', 'dlng', 'dlat']]
+    # columns = ['ptime', 'npass', 'onid'，'olng', 'olat', 'dnid', 'dlng', 'dlat', 'dist', 'dtime']
+    taxi_trips = pd.read_csv(f'manhattan-taxi-{year}{month}{day}.csv').loc[:, ['ptime', 'olat', 'dlng', 'dlat']]
     trip_samples = taxi_trips.sample(frac=0.05, replace=False, random_state=1)
     print('trip_samples')
     print(trip_samples.head(2))
@@ -160,7 +161,52 @@ def run():
     hexmap6.save('choropleth_multiple_res.html')
 
 
+def print_num_of_request_on_different_time_of_the_day(year='2016', month='05', day='25'):
+    # year = '2015'
+    # month = '05'
+    # day = '06'
+    # # columns = ['ptime', 'npass', 'onid'，'olng', 'olat', 'dnid', 'dlng', 'dlat', 'dist', 'dtime']
+    # taxi_trips = pd.read_csv(f'manhattan-taxi-{year}{month}{day}.csv').loc[:, ['ptime']]
+    # print('trip_samples')
+    # print(taxi_trips.head(2))
+
+    TRIP_NUM = '800k'  # 400k(404310), 500k(504985), 600k(605660), 700k(703260), 800k(800752)
+    with open(f'NYC_REQ_DATA_{TRIP_NUM}.pickle', 'rb') as f:
+        taxi_trips = pickle.load(f)
+
+    DATE = year + month + day
+    start_time_of_day = parse(DATE + ' 00:00:00')
+    DMD_STA = (parse(DATE + ' 00:00:00') - start_time_of_day).seconds
+    DMD_END = (parse(DATE + ' 23:59:59') - start_time_of_day).seconds
+    DMD_BIN = (parse(DATE + ' 00:30:00') - start_time_of_day).seconds
+    time_bins = list(range(DMD_STA, DMD_END + DMD_BIN, DMD_BIN))
+    print(DMD_STA, DMD_END, DMD_BIN)
+    print(time_bins)
+
+    taxi_trips['ptime'] = taxi_trips['ptime'].map(lambda t: (parse(t) - start_time_of_day).seconds)
+    taxi_trips['time_bin'] = pd.cut(taxi_trips['ptime'], time_bins)
+    agg1_col = f'all trips'
+    agg1 = taxi_trips.groupby(by=['time_bin'])['ptime'].agg(['count']).rename(columns={'count': agg1_col})
+    print(agg1.head(2))
+
+    ax_num = agg1.plot(kind='bar', figsize=(16, 6))
+    ax_num.set_xlabel('time bins (s)')
+    ax_num.set_ylabel('number')
+    # ax_num.legend(loc=9)
+    plt.tight_layout()
+    # plt.savefig('./analysis/analysis-for-different-times.png', dpi=300)
+    plt.show()
+
+
 if __name__ == '__main__':
     start_time = time.time()
-    run()
+    # run_counts_by_hexagon()
+    # print_num_of_request_on_different_time_of_the_day()
+
+    year = '2016'
+    month = '05'
+    day = '25'
+    # columns = ['ptime', 'npass', 'onid'，'olng', 'olat', 'dnid', 'dlng', 'dlat', 'dist', 'dtime']
+    taxi_trips = pd.read_csv(f'manhattan-taxi-{year}{month}{day}.csv').loc[:, ['ptime', 'olat', 'dlng', 'dlat']]
+    print('num of reqs', len(taxi_trips))
     print('...running time : %.05f seconds' % (time.time() - start_time))
