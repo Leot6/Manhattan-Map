@@ -9,6 +9,7 @@ To run the code, download data files from [this google drive link](https://drive
 ```
 |-- Manhattan-Map
    |-- map-data-gitignore
+   |-- pickle-files-gitignore
    |-- precomputed-tables-gitignore
    |-- taxi-data-gitignore
 ```
