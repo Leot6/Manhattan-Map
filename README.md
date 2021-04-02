@@ -1,7 +1,18 @@
 # `Manhattan Map`
-<img src="https://github.com/Leot6/Manhattan-Map/blob/master/map-data/node_distribution.jpg" width="1000">
+<img src="https://github.com/Leot6/Manhattan-Map/blob/master/node_distribution.jpg" width="1000">
 
 Built on [this repository](https://github.com/wallarelvo/nyc-taxi-analysis). This network of Manhattan consists of 4,091 nodes and 9,452 edges. The travel times on each edge (road segment) during each hour of the day are provided. Taxi trip data on several days is also provided. 
+
+
+To run the code, download data files from [this google drive link](https://drive.google.com/drive/folders/1p9QZACjjBDog3KzvoAtkNgcrvjHMj6TG?usp=sharing), and put the data folder in the root directory.
+
+```
+|-- Manhattan-Map
+   |-- map-data-gitignore
+   |-- precomputed-tables-gitignore
+   |-- taxi-data-gitignore
+```
+
 
 Put the taxi trip data file (e.g. yellow_tripdata_2015-05.csv) in the root folder, and run `run.py`, which will do the following things.
 1. Run `network_generator.py` to load map data, build the Manhattan network using [networkx](https://networkx.github.io/) and save it as a pickle file. 

@@ -16,7 +16,8 @@ from tqdm import tqdm
 
 from config import *
 
-with open(f'{PICKLE_PATH}NYC_NET_WEEK.pickle', 'rb') as f:
+data_sourse = 'uber'
+with open(f'{PICKLE_PATH}NYC_NET_{data_sourse}.pickle', 'rb') as f:
     NYC_NET = pickle.load(f)
 G = copy.deepcopy(NYC_NET)
 
@@ -40,26 +41,28 @@ def get_path_from_path_table(path_table, onid, dnid):
     return path
 
 
-def get_path_mean_and_var(path):
+def get_path_mean_var_and_dist(path):
     """Get the mean and variance of a given path.
 
         Args:
             path: the path from a origin to a destination, e.g. [1, 3, 4, 7].
 
         Returns:
-            mean, var
+            mean, var, dist
     """
     mean = 0.0
     var = 0.0
+    dist = 0.0
     for i in range(len(path) - 1):
         u = path[i]
         v = path[i + 1]
         mean += NYC_NET.get_edge_data(u, v, default={'dur': None})['dur']
         var += NYC_NET.get_edge_data(u, v, default={'var': None})['var']
-    return round(mean, 2), round(var, 2)
+        dist += NYC_NET.get_edge_data(u, v, default={'dist': None})['dist']
+    return round(mean, 2), round(var, 2), round(dist, 2)
 
 
-def compute_tables(network=NYC_NET, label=''):
+def compute_tables(network=NYC_NET, label=data_sourse):
     """Compute the shortest paths among all nodes pairs and store the paths, along with means and variances, in tables.
 
         Args:
@@ -70,7 +73,8 @@ def compute_tables(network=NYC_NET, label=''):
             saving the tables as csv files, named 'path-table.csv', 'mean-table.csv' and 'var-table.csv'
     """
     stime = time.time()
-    print(' computing all_pairs_dijkstra...')
+    print(f'Using {label} data, with {network.number_of_nodes()} nodes and {network.number_of_edges()} edges')
+    print(f' computing all_pairs_dijkstra...')
     len_paths = dict(nx.all_pairs_dijkstra(network, cutoff=None, weight='dur'))
     print(f'all_pairs_dijkstra running time: {time.time() - stime:.5f} sec')
     print(' writing table value...')
@@ -79,27 +83,29 @@ def compute_tables(network=NYC_NET, label=''):
     path_table = pd.DataFrame(-np.ones((num_nodes, num_nodes), dtype=int), index=nodes_id, columns=nodes_id)
     mean_table = pd.DataFrame(-np.ones((num_nodes, num_nodes)), index=nodes_id, columns=nodes_id)
     var_table = pd.DataFrame(-np.ones((num_nodes, num_nodes)), index=nodes_id, columns=nodes_id)
+    dist_table = pd.DataFrame(-np.ones((num_nodes, num_nodes)), index=nodes_id, columns=nodes_id)
     for o in tqdm(nodes_id, desc='path-table row'):
-        for d in tqdm(nodes_id, desc='path-table column'):
+        for d in tqdm(nodes_id, desc='path-table column', leave=False):
             try:
                 path = len_paths[o][1][d]
-                # if var table is not needed, using the following line to get mean is faster
+                # # if var table is not needed, using the following line to get mean is faster
                 # mean = round(len_paths[o][0][d], 2)
-                mean, var = get_path_mean_and_var(path)
+                mean, var, dist = get_path_mean_var_and_dist(path)
+                # print(f'debug: path:{(o, d)}, mean:{mean}, std:{var ** 0.5}, dist:{dist}')
                 mean_table.iloc[o - 1, d - 1] = mean
                 var_table.iloc[o - 1, d - 1] = var
+                dist_table.iloc[o - 1, d - 1] = dist
                 if len(path) == 1:
                     continue
                 else:
                     pre_node = path[-2]
                     path_table.iloc[o - 1, d - 1] = pre_node
-            except nx.NetworkXNoPath:
+            except KeyError:
                 print('no path between', o, d)
-    if label:
-        label = '_' + label
-    path_table.to_csv(f'{TABLE_PATH}path-table{label}.csv')
-    mean_table.to_csv(f'{TABLE_PATH}mean-table{label}.csv')
-    var_table.to_csv(f'{TABLE_PATH}var-table{label}.csv')
+    path_table.to_csv(f'{TABLE_PATH}/{label}/path-table.csv')
+    mean_table.to_csv(f'{TABLE_PATH}/{label}/mean-table.csv')
+    var_table.to_csv(f'{TABLE_PATH}/{label}/var-table.csv')
+    dist_table.to_csv(f'{TABLE_PATH}/{label}/dist-table.csv')
 
 
 def compute_a_set_of_lambda_path_tables(lambda_set):

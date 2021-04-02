@@ -34,5 +34,7 @@
 __pycache__/
 .idea/
 .DS_Store
+map-data-gitignore/
+taxi-data-gitignore/
 precomputed-tables-gitignore/
 pickle-files-gitignore/

@@ -4,6 +4,8 @@ filter out the trips starts/ends within Manhattan area
 
 import time
 import pickle
+import yaml
+import csv
 import pandas as pd
 import numpy as np
 import datetime
@@ -12,10 +14,10 @@ from tqdm import tqdm
 from config import *
 
 # the locations of nodes
-NOD_LOC = pd.read_csv('./map-data/nodes.csv').values.tolist()
+NOD_LOC = pd.read_csv('./map-data/mit/nodes.csv').values.tolist()
 # the travel time table, storing ETA among all node pairs
-with open(f'{PICKLE_PATH}NYC_TTT_WEEK.pickle', 'rb') as f:
-    NOD_TTT = pickle.load(f)
+# with open(f'{PICKLE_PATH}NYC_TTT_WEEK.pickle', 'rb') as f:
+#     NOD_TTT = pickle.load(f)
 
 
 def is_point_in_poly(lng, lat):
@@ -32,6 +34,7 @@ def is_point_in_poly(lng, lat):
     point_list = [(-74.022, 40.697), (-73.972, 40.711), (-73.958, 40.749), (-73.938, 40.771), (-73.937, 40.786),
                   (-73.928, 40.794), (-73.926, 40.801), (-73.932, 40.808), (-73.933, 40.835), (-73.924, 40.851),
                   (-73.911, 40.866), (-73.909, 40.873), (-73.927, 40.879), (-74.011, 40.751)]
+
     iSum = 0
     iCount = len(point_list)
     if iCount < 3:
@@ -252,18 +255,23 @@ def map_geo_to_node_id(csv_file_path):
     df1.to_csv(csv_file_path, index=False)
 
 
-def merge_two_days_trips(year, month, day1, day2, expected_num_trip=400000):
+def merge_two_days_trips(year, month, day1, day2, expected_num_trip=0):
     """Merge some trips on day 2 to day 1, and save them to a new csv file
     """
     df_day1 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}.csv')
     print('number of all taxi trips on day 1:', df_day1.shape[0])
     df_day2 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day2}.csv')
     print('number of all taxi trips on day 2:', df_day2.shape[0])
+
+    print('merging...')
     day_difference = int(day1) - int(day2)
     df_day2['ptime'] = df_day2['ptime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
     df_day2['dtime'] = df_day2['dtime'].map(lambda x: str(parse(x) + datetime.timedelta(days=day_difference)))
 
-    fraction = (expected_num_trip - df_day1.shape[0]) / df_day2.shape[0]
+    if expected_num_trip:
+        fraction = (expected_num_trip - df_day1.shape[0]) / df_day2.shape[0]
+    else:
+        fraction = 1
     step = int(1/fraction)
     df_day2 = df_day2.iloc[1::step]  # [start：end：step]
 
@@ -276,6 +284,7 @@ def merge_two_days_trips(year, month, day1, day2, expected_num_trip=400000):
     df13 = pd.concat(merged_trips, ignore_index=True)
     df13.sort_values('ptime', inplace=True)
     print('number of all taxi trips:', df13.shape[0])
+    print('saving to file...')
     df13.to_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}-{df13.shape[0]}.csv', index=False)
 
 
@@ -323,6 +332,30 @@ def filter_out_needed_trips(unprocessed_trip_file, year='2015', month='05', day=
     print(f'...running time : {time.time() - stime:.5f} sec')
 
 
+def filter_out_trips_during_pick_hour(year, month, day):
+    df = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv')
+    print(f'total num of trips on {year}{month}{day}: {df.shape[0]}')
+
+    df1 = df.loc[lambda x: x['ptime'].str.startswith(f'{year}-{month}-{day} 18')]
+    df2 = df.loc[lambda x: x['ptime'].str.startswith(f'{year}-{month}-{day} 19')]
+    df3 = pd.concat([df1, df2], ignore_index=True)
+    print(df3.head(2))
+    print()
+    print(f'num of requests during peak hours: {df3.shape[0]}')
+    print('saving to file...')
+    df3.to_csv(f'manhattan-taxi-{year}{month}{day}-peak.csv', index=False)
+    with open(f'{PICKLE_PATH}NYC_REQ_DATA_{year}{month}{day}_peak.pickle', 'wb') as f:
+        pickle.dump(df3, f)
+
+
+def convert_ptime_to_seconds(year, month, day):
+    df = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv')
+    print(f'total num of trips on {year}{month}{day}: {df.shape[0]}')
+    df['ptime'] = df['ptime'].map(lambda x: (parse(x) - parse(f'{year}-{month}-{day} 00:00:00')).seconds)
+    df[['ptime']] = df[['ptime']].astype(int)
+    df.to_csv(f'manhattan-taxi-{year}{month}{day}.csv', index=False)
+
+
 if __name__ == '__main__':
     year = '2016'
     month = '05'
@@ -331,5 +364,10 @@ if __name__ == '__main__':
 
     # print_num_of_trips_on_each_day(unprocessed_trip_file, year, month)
     # filter_out_needed_trips(unprocessed_trip_file, year, month, day)
-    day2 = '11'
-    merge_two_days_trips(year, month, day, day2, 500000)
+    # day2 = '04'
+    # merge_two_days_trips(year, month, day, day2, 1000000)
+
+    # filter_out_trips_during_pick_hour(year, month, day)
+
+
+
