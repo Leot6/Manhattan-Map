@@ -38,3 +38,5 @@ map-data-gitignore/
 taxi-data-gitignore/
 precomputed-tables-gitignore/
 pickle-files-gitignore/
+*.csv
+*.pickle
