@@ -14,10 +14,10 @@ from tqdm import tqdm
 from config import *
 
 # the locations of nodes
-NOD_LOC = pd.read_csv('./map-data/mit/nodes.csv').values.tolist()
+NOD_LOC = pd.read_csv(f'{MAP_DATA_PATH}/nodes.csv').values.tolist()
 # the travel time table, storing ETA among all node pairs
-# with open(f'{PICKLE_PATH}NYC_TTT_WEEK.pickle', 'rb') as f:
-#     NOD_TTT = pickle.load(f)
+with open(f'{PICKLE_PATH}/NYC_TTT.pickle', 'rb') as f:
+    NOD_TTT = pickle.load(f)
 
 
 def is_point_in_poly(lng, lat):
@@ -126,7 +126,7 @@ def print_num_of_trips_on_each_day(csv_file_path, year='2016', month='05'):
         print('number of trips on selected day (%s): %d' % (date, df1.shape[0]))
 
 
-def select_trips_on_a_day(csv_file_path, year='2015', month='05', day='05'):
+def select_trips_on_a_day(csv_file_path, year='2016', month='05', day='25'):
     """Filter out the trips in Manhattan on the selected day
 
         Args:
@@ -141,7 +141,7 @@ def select_trips_on_a_day(csv_file_path, year='2015', month='05', day='05'):
     # the selected day
     date = year + '-' + month + '-' + day
     # proposed saving file name
-    manhattan_taxi_file_on_selected_day = f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv'
+    manhattan_taxi_file_on_selected_day = f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day}.csv'
 
     # labels' names
     # # for green taxi
@@ -258,9 +258,9 @@ def map_geo_to_node_id(csv_file_path):
 def merge_two_days_trips(year, month, day1, day2, expected_num_trip=0):
     """Merge some trips on day 2 to day 1, and save them to a new csv file
     """
-    df_day1 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}.csv')
+    df_day1 = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day1}.csv')
     print('number of all taxi trips on day 1:', df_day1.shape[0])
-    df_day2 = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day2}.csv')
+    df_day2 = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day2}.csv')
     print('number of all taxi trips on day 2:', df_day2.shape[0])
 
     print('merging...')
@@ -285,14 +285,14 @@ def merge_two_days_trips(year, month, day1, day2, expected_num_trip=0):
     df13.sort_values('ptime', inplace=True)
     print('number of all taxi trips:', df13.shape[0])
     print('saving to file...')
-    df13.to_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day1}-{df13.shape[0]}.csv', index=False)
+    df13.to_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day1}-{df13.shape[0]}.csv', index=False)
 
 
-def merge_green_taxi_and_yellow_taxi_together(year='2015', month='05', day='05'):
-    df8 = pd.read_csv(f'./taxi-trips/manhattan-green-taxi-{year}{month}{day}.csv')
+def merge_green_taxi_and_yellow_taxi_together(year='2016', month='05', day='25'):
+    df8 = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-green-taxi-{year}{month}{day}.csv')
     df8['taxi'] = 'green'
     print('number of green taxi trips:', df8.shape[0])
-    df9 = pd.read_csv(f'./taxi-trips/manhattan-yellow-taxi-{year}{month}{day}.csv')
+    df9 = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-yellow-taxi-{year}{month}{day}.csv')
     df9['taxi'] = 'yellow'
     print('number of yellow taxi trips:', df9.shape[0])
     frames = [df8, df9]
@@ -302,7 +302,7 @@ def merge_green_taxi_and_yellow_taxi_together(year='2015', month='05', day='05')
     df10.to_csv(f'manhattan-taxi-{year}{month}{day}.csv', index=False)
 
 
-def filter_out_needed_trips(unprocessed_trip_file, year='2015', month='05', day='02'):
+def filter_out_needed_trips(unprocessed_trip_file, year='2016', month='05', day='25'):
     """The main function, running the above functions and process the trip data file
 
         Args:
@@ -321,13 +321,13 @@ def filter_out_needed_trips(unprocessed_trip_file, year='2015', month='05', day=
     select_trips_on_a_day(unprocessed_trip_file, year, month, day)
 
     # add node id information to the trip data
-    csv_file_path = f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv'
+    csv_file_path = f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day}.csv'
     map_geo_to_node_id(csv_file_path)
 
     # store taxi trips as pickle file
     print('store taxi trips to pickle file')
     REQ_DATA = pd.read_csv(csv_file_path)
-    with open(f'{PICKLE_PATH}NYC_REQ_DATA_{year}{month}{day}.pickle', 'wb') as f:
+    with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{year}{month}{day}.pickle', 'wb') as f:
         pickle.dump(REQ_DATA, f)
     print(f'...running time : {time.time() - stime:.5f} sec')
 
@@ -344,12 +344,12 @@ def filter_out_trips_during_pick_hour(year, month, day):
     print(f'num of requests during peak hours: {df3.shape[0]}')
     print('saving to file...')
     df3.to_csv(f'manhattan-taxi-{year}{month}{day}-peak.csv', index=False)
-    with open(f'{PICKLE_PATH}NYC_REQ_DATA_{year}{month}{day}_peak.pickle', 'wb') as f:
+    with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{year}{month}{day}_peak.pickle', 'wb') as f:
         pickle.dump(df3, f)
 
 
 def convert_ptime_to_seconds(year, month, day):
-    df = pd.read_csv(f'./taxi-trips/manhattan-taxi-{year}{month}{day}.csv')
+    df = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day}.csv')
     print(f'total num of trips on {year}{month}{day}: {df.shape[0]}')
     df['ptime'] = df['ptime'].map(lambda x: (parse(x) - parse(f'{year}-{month}-{day} 00:00:00')).seconds)
     df[['ptime']] = df[['ptime']].astype(int)
@@ -368,6 +368,8 @@ if __name__ == '__main__':
     # merge_two_days_trips(year, month, day, day2, 1000000)
 
     # filter_out_trips_during_pick_hour(year, month, day)
+
+    convert_ptime_to_seconds(year, month, day)
 
 
 

@@ -29,7 +29,7 @@ def get_haversine_dist(olng, olat, dlng, dlat):
     return dist
 
 
-def load_Manhattan_network_mit():
+def load_Manhattan_network():
     """Build the Manhattan network using networkx
 
         Args:
@@ -42,9 +42,9 @@ def load_Manhattan_network_mit():
     """
     stime = time.time()
     print('Loading edges and nodes data...')
-    nodes = pd.read_csv('./map-data/mit/nodes.csv')
-    edges = pd.read_csv('./map-data/mit/edges.csv')
-    travel_time_edges = pd.read_csv('./map-data/mit/time-on-week.csv', index_col=0)
+    nodes = pd.read_csv(f'{MAP_DATA_PATH}/nodes.csv')
+    edges = pd.read_csv(f'{MAP_DATA_PATH}/edges.csv')
+    travel_time_edges = pd.read_csv(f'{MAP_DATA_PATH}/time-on-week.csv', index_col=0)
     # consider the travels times on different hours as samples, and compute the sample mean and standard deviation
     mean_travel_times = travel_time_edges.mean(1)
     std_travel_times = travel_time_edges.std(1)
@@ -81,7 +81,7 @@ def load_Manhattan_network_mit():
 
     # store_map_as_pickle_file
     print('Saving the network as a pickle file...')
-    with open(f'{PICKLE_PATH}NYC_NET_MIT.pickle', 'wb') as f:
+    with open(f'{PICKLE_PATH}/NYC_NET.pickle', 'wb') as f:
         pickle.dump(G, f)
 
     print(f'...running time: {time.time() - stime:.5f} sec')
@@ -92,8 +92,8 @@ def load_Manhattan_network_uber():
     """
     stime = time.time()
     print('Loading edges and nodes data...')
-    nodes = pd.read_csv('./map-data/uber/nodes.csv')
-    edges = pd.read_csv('./map-data/uber/edges.csv')
+    nodes = pd.read_csv(f'{MAP_DATA_PATH}/uber/nodes.csv')
+    edges = pd.read_csv(f'{MAP_DATA_PATH}/uber/edges.csv')
     G = nx.DiGraph()
     num_edges = edges.shape[0]
     rng = tqdm(edges.iterrows(), total=num_edges, ncols=100, desc='Generating Manhattan network...')
@@ -117,7 +117,7 @@ def load_Manhattan_network_uber():
 
     # store_map_as_pickle_file
     print('Saving the network as a pickle file...')
-    with open(f'{PICKLE_PATH}NYC_NET_UBER.pickle', 'wb') as f:
+    with open(f'{PICKLE_PATH}/NYC_NET_UBER.pickle', 'wb') as f:
         pickle.dump(G, f)
 
     print(f'...running time: {time.time() - stime:.5f} sec')
@@ -195,7 +195,7 @@ def merging_incident_nodes(G):
 
 
 if __name__ == '__main__':
-    # load_Manhattan_network_mit()
+    # load_Manhattan_network()
     # load_Manhattan_network_uber()
 
     with open(f'{PICKLE_PATH}NYC_NET_UBER.pickle', 'rb') as f:

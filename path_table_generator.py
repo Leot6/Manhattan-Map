@@ -16,8 +16,7 @@ from tqdm import tqdm
 
 from config import *
 
-data_sourse = 'uber'
-with open(f'{PICKLE_PATH}NYC_NET_{data_sourse}.pickle', 'rb') as f:
+with open(f'{PICKLE_PATH}/NYC_NET.pickle', 'rb') as f:
     NYC_NET = pickle.load(f)
 G = copy.deepcopy(NYC_NET)
 
@@ -62,7 +61,7 @@ def get_path_mean_var_and_dist(path):
     return round(mean, 2), round(var, 2), round(dist, 2)
 
 
-def compute_tables(network=NYC_NET, label=data_sourse):
+def compute_tables(network=NYC_NET):
     """Compute the shortest paths among all nodes pairs and store the paths, along with means and variances, in tables.
 
         Args:
@@ -73,7 +72,7 @@ def compute_tables(network=NYC_NET, label=data_sourse):
             saving the tables as csv files, named 'path-table.csv', 'mean-table.csv' and 'var-table.csv'
     """
     stime = time.time()
-    print(f'Using {label} data, with {network.number_of_nodes()} nodes and {network.number_of_edges()} edges')
+    print(f'Using data with {network.number_of_nodes()} nodes and {network.number_of_edges()} edges')
     print(f' computing all_pairs_dijkstra...')
     len_paths = dict(nx.all_pairs_dijkstra(network, cutoff=None, weight='dur'))
     print(f'all_pairs_dijkstra running time: {time.time() - stime:.5f} sec')
@@ -102,10 +101,10 @@ def compute_tables(network=NYC_NET, label=data_sourse):
                     path_table.iloc[o - 1, d - 1] = pre_node
             except KeyError:
                 print('no path between', o, d)
-    path_table.to_csv(f'{TABLE_PATH}/{label}/path-table.csv')
-    mean_table.to_csv(f'{TABLE_PATH}/{label}/mean-table.csv')
-    var_table.to_csv(f'{TABLE_PATH}/{label}/var-table.csv')
-    dist_table.to_csv(f'{TABLE_PATH}/{label}/dist-table.csv')
+    path_table.to_csv(f'{TABLE_PATH}/path-table.csv')
+    mean_table.to_csv(f'{TABLE_PATH}/mean-table.csv')
+    var_table.to_csv(f'{TABLE_PATH}/var-table.csv')
+    dist_table.to_csv(f'{TABLE_PATH}/dist-table.csv')
 
 
 def compute_a_set_of_lambda_path_tables(lambda_set):

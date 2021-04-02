@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from tqdm import tqdm
-from config import PICKLE_PATH
+from config import *
 
 with open(f'{PICKLE_PATH}NYC_NET_WEEK.pickle', 'rb') as f:
     NETWORK = pickle.load(f)
@@ -40,7 +40,7 @@ def plot_path(onid, dnid, paths):
     fig = plt.figure(figsize=(MAP_WIDTH, MAP_HEIGHT))
     plt.xlim((Olng, Dlng))
     plt.ylim((Olat, Dlat))
-    img = mpimg.imread('./map-data/map.png')
+    img = mpimg.imread(f'{MAP_DATA_PATH}/map.png')
     plt.imshow(img, extent=[Olng, Dlng, Olat, Dlat], aspect=(Dlng - Olng) / (Dlat - Olat) * MAP_HEIGHT / MAP_WIDTH)
     fig.subplots_adjust(left=0.00, bottom=0.00, right=1.00, top=1.00)
     [olng, olat] = NETWORK.nodes[onid]['pos']
@@ -74,7 +74,7 @@ def plot_node(nodes):
     fig = plt.figure(figsize=(MAP_WIDTH, MAP_HEIGHT))
     plt.xlim((Olng, Dlng))
     plt.ylim((Olat, Dlat))
-    img = mpimg.imread('./map-data/map.png')
+    img = mpimg.imread(f'{MAP_DATA_PATH}/map.png')
     plt.imshow(img, extent=[Olng, Dlng, Olat, Dlat], aspect=(Dlng - Olng) / (Dlat - Olat) * MAP_HEIGHT / MAP_WIDTH)
     fig.subplots_adjust(left=0.00, bottom=0.00, right=1.00, top=1.00)
 

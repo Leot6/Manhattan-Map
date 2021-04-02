@@ -10,4 +10,4 @@ if __name__ == '__main__':
     store_network_to_pickle()
     store_path_table_to_pickle()
     from trip_filter import filter_out_needed_trips
-    filter_out_needed_trips('yellow_tripdata_2015-05.csv', '2016', '05', '05')
+    filter_out_needed_trips('yellow_tripdata_2016-05.csv', '2016', '05', '05')
