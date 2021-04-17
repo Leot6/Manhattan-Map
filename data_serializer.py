@@ -57,6 +57,17 @@ def store_taxi_trips_to_pickle(date='20160525'):
         pickle.dump(REQ_DATA, f)
 
 
+def convert_pickle_file_to_trip_csv():
+    date = "20160525"
+    # 400k(404310), 500k(504985), 600k(605660), 700k(703260), 800k(800752)，100k(1005517), 1200k(1219956)
+    TRIP_NUM = '400k'  
+    print('store taxi trips to csv', TRIP_NUM)
+    with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{TRIP_NUM}.pickle', 'rb') as f:
+        REQ_DATA = pickle.load(f)
+    REQ_DATA.to_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-20160525-{date}-{TRIP_NUM}.csv', index=False)
+    print('  number of trips :', REQ_DATA.shape[0])
+
+
 if __name__ == '__main__':
     # store_network_to_pickle()
     # store_path_table_to_pickle('mit')
@@ -66,8 +77,10 @@ if __name__ == '__main__':
 
     # store_taxi_trips_to_pickle('20160525-1005517')
     start_time = time.time()
-    date = '20150505'
-    print('store taxi trips', date)
-    REQ_DATA = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{date}.csv')
-    NOD_TTT = pd.read_csv(f'{TABLE_PATH}/mean-table.csv', index_col=0).values
+    date = '20160525'
+    # print('store taxi trips', date)
+    # REQ_DATA = pd.read_csv(f'{TAXI_DATA_PATH}/manhattan-taxi-{date}.csv')
+    # NOD_TTT = pd.read_csv(f'{TABLE_PATH}/mean-table.csv', index_col=0).values
+
+    convert_pickle_file_to_trip_csv()
     print('...running time : %.05f seconds' % (time.time() - start_time))
