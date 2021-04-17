@@ -60,7 +60,7 @@ def store_taxi_trips_to_pickle(date='20160525'):
 def convert_pickle_file_to_trip_csv():
     date = "20160525"
     # 400k(404310), 500k(504985), 600k(605660), 700k(703260), 800k(800752)，100k(1005517), 1200k(1219956)
-    TRIP_NUM = '400k'  
+    TRIP_NUM = '400k'
     print('store taxi trips to csv', TRIP_NUM)
     with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{TRIP_NUM}.pickle', 'rb') as f:
         REQ_DATA = pickle.load(f)
