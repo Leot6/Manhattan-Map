@@ -3,8 +3,7 @@
 
 Built on [this repository](https://github.com/wallarelvo/nyc-taxi-analysis). This network of Manhattan consists of 4,091 nodes and 9,452 edges. The travel times on each edge (road segment) during each hour of the day are provided. Taxi trip data on several days is also provided. 
 
-To run the code, download data files from [this onedrive link](https://1drv.ms/f/s!AsqflzzqZj9qg-8nGeUMw8BgM6O-4w) or [this google drive link](https://drive.google.com/drive/folders/1p9QZACjjBDog3KzvoAtkNgcrvjHMj6TG?usp=sharing), and put the downloaded folders in the root directory.
-
+Download code and data files from the [releases](https://github.com/Leot6/Manhattan-Map/releases). Data files should be located in the root directory of the code.
 ```
 |-- Manhattan-Map
    |-- map-data-gitignore
