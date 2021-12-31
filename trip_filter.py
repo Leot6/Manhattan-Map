@@ -4,7 +4,6 @@ filter out the trips starts/ends within Manhattan area
 
 import time
 import pickle
-import yaml
 import csv
 import pandas as pd
 import numpy as np
@@ -324,11 +323,6 @@ def filter_out_needed_trips(unprocessed_trip_file, year='2016', month='05', day=
     csv_file_path = f'{TAXI_DATA_PATH}/manhattan-taxi-{year}{month}{day}.csv'
     map_geo_to_node_id(csv_file_path)
 
-    # store taxi trips as pickle file
-    print('store taxi trips to pickle file')
-    REQ_DATA = pd.read_csv(csv_file_path)
-    with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{year}{month}{day}.pickle', 'wb') as f:
-        pickle.dump(REQ_DATA, f)
     print(f'...running time : {time.time() - stime:.5f} sec')
 
 
@@ -344,8 +338,6 @@ def filter_out_trips_during_pick_hour(year, month, day):
     print(f'num of requests during peak hours: {df3.shape[0]}')
     print('saving to file...')
     df3.to_csv(f'manhattan-taxi-{year}{month}{day}-peak.csv', index=False)
-    with open(f'{PICKLE_PATH}/NYC_REQ_DATA_{year}{month}{day}_peak.pickle', 'wb') as f:
-        pickle.dump(df3, f)
 
 
 def convert_ptime_to_seconds(year, month, day):
@@ -359,17 +351,17 @@ def convert_ptime_to_seconds(year, month, day):
 if __name__ == '__main__':
     year = '2016'
     month = '05'
-    day = '25'
+    day = '26'
     unprocessed_trip_file = f'yellow_tripdata_{year}-{month}.csv'
 
     # print_num_of_trips_on_each_day(unprocessed_trip_file, year, month)
-    # filter_out_needed_trips(unprocessed_trip_file, year, month, day)
+    filter_out_needed_trips(unprocessed_trip_file, year, month, day)
     # day2 = '04'
     # merge_two_days_trips(year, month, day, day2, 1000000)
 
     # filter_out_trips_during_pick_hour(year, month, day)
 
-    convert_ptime_to_seconds(year, month, day)
+    # convert_ptime_to_seconds(year, month, day)
 
 
 
